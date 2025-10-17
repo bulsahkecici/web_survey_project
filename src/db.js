@@ -1,15 +1,20 @@
-import sql from "mssql";
+import sql from 'mssql';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const config = {
   server: process.env.MSSQL_SERVER || 'localhost\\SQLEXPRESS',
-  database: process.env.MSSQL_DATABASE,
+  database: process.env.MSSQL_DB || process.env.MSSQL_DATABASE,
+  port: process.env.MSSQL_PORT
+    ? parseInt(process.env.MSSQL_PORT, 10)
+    : undefined,
   options: {
     enableArithAbort: true,
-    encrypt: false,
-    trustServerCertificate: true,
-    useUTC: false
+    encrypt: !!isProduction,
+    trustServerCertificate: !isProduction,
+    useUTC: false,
   },
-  pool: { max: 10, min: 0, idleTimeoutMillis: 30000 }
+  pool: { max: 10, min: 0, idleTimeoutMillis: 30000 },
 };
 
 // Eğer USER ve PASSWORD varsa, SQL Authentication kullan

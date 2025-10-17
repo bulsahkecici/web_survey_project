@@ -23,8 +23,13 @@ CREATE TABLE dbo.surveys (
   slug          NVARCHAR(100) NOT NULL UNIQUE,
   title         NVARCHAR(200) NOT NULL,
   is_active     BIT NOT NULL DEFAULT 1,
-  created_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  created_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+  updated_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
+GO
+
+-- Index for slug lookups
+CREATE INDEX IX_surveys_slug ON dbo.surveys (slug);
 GO
 
 /* ----------------------------------------------------
@@ -35,7 +40,8 @@ CREATE TABLE dbo.survey_sections (
   survey_id     INT NOT NULL,
   name          NVARCHAR(200) NOT NULL,
   ord           INT NOT NULL,
-  created_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  created_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+  updated_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
 GO
 
@@ -60,7 +66,9 @@ CREATE TABLE dbo.questions (
   type              NVARCHAR(20) NOT NULL,
   required          BIT NOT NULL DEFAULT 0,
   options_json      NVARCHAR(MAX) NULL,
-  conditional_logic NVARCHAR(MAX) NULL
+  conditional_logic NVARCHAR(MAX) NULL,
+  created_at        DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+  updated_at        DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
 GO
 
@@ -76,6 +84,7 @@ FOREIGN KEY (section_id) REFERENCES dbo.survey_sections(id);
 GO
 
 CREATE INDEX IX_questions_survey ON dbo.questions (survey_id, ord);
+CREATE NONCLUSTERED INDEX IX_questions_survey_section ON dbo.questions (survey_id, section_id) INCLUDE (ord, label, type);
 GO
 
 /* ----------------------------------------------------
@@ -109,7 +118,8 @@ CREATE TABLE dbo.responses (
   survey_id     INT NOT NULL,
   invitation_id INT NULL,
   email         NVARCHAR(320) NOT NULL,
-  submitted_at  DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  submitted_at  DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+  updated_at    DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
 GO
 
@@ -124,7 +134,9 @@ ADD CONSTRAINT FK_responses_invitation
 FOREIGN KEY (invitation_id) REFERENCES dbo.invitations(id);
 GO
 
+-- Unique constraint: Bir e-posta bir anketi sadece bir kez doldurabilir
 CREATE UNIQUE INDEX UX_responses_survey_email ON dbo.responses(survey_id, email);
+CREATE NONCLUSTERED INDEX IX_responses_survey ON dbo.responses (survey_id) INCLUDE (email, submitted_at);
 GO
 
 /* ----------------------------------------------------
@@ -152,7 +164,8 @@ ADD CONSTRAINT FK_answers_question
 FOREIGN KEY (question_id) REFERENCES dbo.questions(id);
 GO
 
-CREATE INDEX IX_answers_response ON dbo.answers (response_id);
+CREATE NONCLUSTERED INDEX IX_answers_response ON dbo.answers (response_id) INCLUDE (question_id, value_text);
+CREATE NONCLUSTERED INDEX IX_answers_question ON dbo.answers (question_id) INCLUDE (response_id, value_text);
 GO
 
 /* ----------------------------------------------------

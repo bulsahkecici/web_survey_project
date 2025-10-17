@@ -379,12 +379,123 @@
       border-color: #667eea;
       background: #f0f4ff;
     }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+      min-width: 300px;
+    }
+    .toast.success {
+      border-left: 4px solid #10b981;
+    }
+    .toast.error {
+      border-left: 4px solid #ef4444;
+    }
+    .toast.warning {
+      border-left: 4px solid #f59e0b;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .toast-icon {
+      font-size: 24px;
+    }
+    .toast-message {
+      flex: 1;
+      font-weight: 500;
+    }
+    .toast-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #9ca3af;
+    }
+    .toast-close:hover {
+      color: #374151;
+    }
+    
+    /* Login overlay */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .login-overlay.hidden {
+      display: none;
+    }
+    .login-box {
+      background: #fff;
+      padding: 48px;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+      max-width: 400px;
+      width: 90%;
+    }
+    .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1f2937;
+      text-align: center;
+    }
+    .login-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 32px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+  <!-- Login Overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+      <h1 class="login-title">🔐 Yönetici Girişi</h1>
+      <p class="login-subtitle">Devam etmek için giriş yapın</p>
+      <div class="form-group">
+        <label class="form-label">E-posta</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="admin@example.com" onkeypress="if(event.key==='Enter') handleLogin()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şifre</label>
+        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter') handleLogin()">
+      </div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()">Giriş Yap</button>
+      <div id="loginError" style="color: #ef4444; margin-top: 16px; text-align: center; display: none;"></div>
+      <div style="margin-top: 24px; padding: 16px; background: #f9fafb; border-radius: 12px; font-size: 13px;">
+        <strong>Demo Hesaplar:</strong><br>
+        📧 admin@example.com / admin123<br>
+        📧 user@example.com / user123
+      </div>
+    </div>
+  </div>
+  
   <div class="container">
     <div class="header">
       <h1>📊 Anket Yönetim Paneli</h1>
+      <button class="btn btn-danger" onclick="handleLogout()" style="padding: 8px 16px; font-size: 14px;">
+        🚪 Çıkış
+      </button>
     </div>
     
     <div class="main-content">
@@ -426,11 +537,28 @@
             </label>
           </div>
           
+          <!-- İstatistik Kartları -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 16px; border-radius: 12px;">
+              <div style="font-size: 24px; font-weight: 700;" id="statTotalResponses">0</div>
+              <div style="font-size: 13px; opacity: 0.9;">Toplam Yanıt</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; padding: 16px; border-radius: 12px;">
+              <div style="font-size: 24px; font-weight: 700;" id="statTotalInvitations">0</div>
+              <div style="font-size: 13px; opacity: 0.9;">Toplam Davetiye</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; padding: 16px; border-radius: 12px;">
+              <div style="font-size: 24px; font-weight: 700;" id="statUsedInvitations">0</div>
+              <div style="font-size: 13px; opacity: 0.9;">Kullanılan Davetiye</div>
+            </div>
+          </div>
+          
           <div class="toolbar">
             <button class="btn btn-primary" onclick="showQuestionsView()">📝 Anket Soruları</button>
-            <button class="btn btn-outline" onclick="showStatsModal()">📊 İstatistikler</button>
+            <button class="btn btn-success" onclick="showInviteModal()">✉️ Davetiye Gönder</button>
+            <button class="btn btn-outline" onclick="showStatsModal()">📊 Detaylı İstatistikler</button>
             <button class="btn btn-outline" onclick="showUpdateSurveyModal()">✏️ Güncelle</button>
-            <button class="btn btn-success" onclick="exportSurveyData()">📥 Veriyi İndir (XLSX)</button>
+            <button class="btn btn-outline" onclick="exportSurveyData()">📥 Veriyi İndir (XLSX)</button>
             <button class="btn btn-danger" onclick="deleteSurvey()">🗑️ Sil</button>
           </div>
         </div>
@@ -589,595 +717,27 @@
     </div>
   </div>
   
-  <script>
-    // Global state
-    let surveys = [];
-    let selectedSurvey = null;
-    let questions = [];
-    let sections = [];
-    let currentSection = null;
-    let editingQuestionIndex = null;
-    let draggedIndex = null;
-    
-    const TEMPLATES = {
-      NPS: [
-        { label: "Bizi 0-10 arasında bir arkadaşınıza önerme olasılığınız?", type: "likert", required: true, options: ["0","1","2","3","4","5","6","7","8","9","10"] },
-        { label: "Neden bu puanı verdiniz?", type: "text", required: false, options: [] }
-      ],
-      Likert5: [
-        { label: "Genel memnuniyet düzeyiniz", type: "likert", required: true, options: ["1-Kötü","2","3","4","5-Çok İyi"] }
-      ],
-      Demografi: [
-        { label: "Yaş", type: "number", required: false, options: [] },
-        { label: "Cinsiyet", type: "single", required: false, options: ["Kadın","Erkek"] },
-        { label: "Eğitim Durumu", type: "single", required: false, options: ["İlkokul","Ortaokul","Lise","Üniversite","Lisansüstü"] }
-      ],
-      Sehir: [
-        { label: "Hangi şehirde yaşıyorsunuz?", type: "single", required: true, options: ["Adana","Adıyaman","Afyonkarahisar","Ağrı","Amasya","Ankara","Antalya","Artvin","Aydın","Balıkesir","Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli","Diyarbakır","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkari","Hatay","Isparta","Mersin","İstanbul","İzmir","Kars","Kastamonu","Kayseri","Kırklareli","Kırşehir","Kocaeli","Konya","Kütahya","Malatya","Manisa","Kahramanmaraş","Mardin","Muğla","Muş","Nevşehir","Niğde","Ordu","Rize","Sakarya","Samsun","Siirt","Sinop","Sivas","Tekirdağ","Tokat","Trabzon","Tunceli","Şanlıurfa","Uşak","Van","Yozgat","Zonguldak","Aksaray","Bayburt","Karaman","Kırıkkale","Batman","Şırnak","Bartın","Ardahan","Iğdır","Yalova","Karabük","Kilis","Osmaniye","Düzce"] }
-      ]
-    };
-    
-    // Init
-    loadSurveys();
-    
-    async function loadSurveys() {
-      const res = await fetch('/api/surveys');
-      surveys = await res.json();
-      renderSurveysDropdown();
-    }
-    
-    function renderSurveysDropdown() {
-      const container = document.getElementById('surveysDropdownContent');
-      container.innerHTML = '';
-      surveys.forEach(s => {
-        const item = document.createElement('div');
-        item.className = 'dropdown-item' + (selectedSurvey && selectedSurvey.id === s.id ? ' selected' : '');
-        item.innerHTML = `
-          <strong>${s.title}</strong><br>
-          <small style="color: #6b7280;">/${s.slug}</small>
-          <span class="badge ${s.is_active ? 'badge-success' : 'badge-danger'}" style="margin-left: 8px;">
-            ${s.is_active ? 'Aktif' : 'Pasif'}
-          </span>
-        `;
-        item.onclick = () => selectSurvey(s);
-        container.appendChild(item);
-      });
-      
-      if (surveys.length === 0) {
-        container.innerHTML = '<div class="dropdown-item" style="text-align:center; color: #9ca3af;">Henüz anket yok</div>';
-      }
-    }
-    
-    function toggleDropdown() {
-      document.getElementById('surveysDropdown').classList.toggle('active');
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      const dropdown = document.getElementById('surveysDropdown');
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('active');
-      }
-    });
-    
-    async function selectSurvey(survey) {
-      selectedSurvey = survey;
-      document.getElementById('selectedSurveyText').textContent = survey.title;
-      document.getElementById('surveysDropdown').classList.remove('active');
-      
-      // Update UI
-      document.getElementById('noSurveyView').classList.remove('active');
-      document.getElementById('surveyManagementView').classList.add('active');
-      document.getElementById('questionsView').classList.remove('active');
-      
-      document.getElementById('currentSurveyTitle').textContent = survey.title;
-      document.getElementById('currentSurveySlug').textContent = '/' + survey.slug;
-      document.getElementById('surveyActiveToggle').checked = survey.is_active;
-      
-      // Load sections
-      await loadSections();
-      
-      renderSurveysDropdown();
-    }
-    
-    async function loadSections() {
-      if (!selectedSurvey) return;
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}/sections`);
-      sections = await res.json();
-    }
-    
-    function showNewSurveyModal() {
-      document.getElementById('newSurveySlug').value = '';
-      document.getElementById('newSurveyTitle').value = '';
-      document.getElementById('newSurveyModal').classList.add('active');
-    }
-    
-    async function createSurvey() {
-      const slug = document.getElementById('newSurveySlug').value.trim();
-      const title = document.getElementById('newSurveyTitle').value.trim();
-      
-      if (!slug || !title) {
-        alert('Lütfen tüm alanları doldurun.');
-        return;
-      }
-      
-      const res = await fetch('/api/surveys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, title, isActive: true })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        closeModal('newSurveyModal');
-        await loadSurveys();
-        const newSurvey = surveys.find(s => s.id === data.id);
-        if (newSurvey) selectSurvey(newSurvey);
-      } else {
-        const err = await res.json();
-        alert(err.message || 'Hata oluştu');
-      }
-    }
-    
-    function showUpdateSurveyModal() {
-      if (!selectedSurvey) return;
-      document.getElementById('updateSurveySlug').value = selectedSurvey.slug;
-      document.getElementById('updateSurveyTitle').value = selectedSurvey.title;
-      document.getElementById('updateSurveyModal').classList.add('active');
-    }
-    
-    async function updateSurvey() {
-      if (!selectedSurvey) return;
-      const slug = document.getElementById('updateSurveySlug').value.trim();
-      const title = document.getElementById('updateSurveyTitle').value.trim();
-      
-      if (!slug || !title) {
-        alert('Lütfen tüm alanları doldurun.');
-        return;
-      }
-      
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, title, isActive: selectedSurvey.is_active })
-      });
-      
-      if (res.ok) {
-        closeModal('updateSurveyModal');
-        selectedSurvey.slug = slug;
-        selectedSurvey.title = title;
-        await loadSurveys();
-        selectSurvey(selectedSurvey);
-      } else {
-        const err = await res.json();
-        alert(err.message || 'Hata oluştu');
-      }
-    }
-    
-    async function toggleSurveyActive() {
-      if (!selectedSurvey) return;
-      const isActive = document.getElementById('surveyActiveToggle').checked;
-      
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: selectedSurvey.slug, title: selectedSurvey.title, isActive })
-      });
-      
-      if (res.ok) {
-        selectedSurvey.is_active = isActive;
-        await loadSurveys();
-      } else {
-        alert('Durum değiştirilemedi');
-        document.getElementById('surveyActiveToggle').checked = !isActive;
-      }
-    }
-    
-    async function deleteSurvey() {
-      if (!selectedSurvey) return;
-      if (!confirm(`"${selectedSurvey.title}" anketini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) return;
-      
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        selectedSurvey = null;
-        await loadSurveys();
-        document.getElementById('noSurveyView').classList.add('active');
-        document.getElementById('surveyManagementView').classList.remove('active');
-        document.getElementById('selectedSurveyText').textContent = 'Anket Seçin';
-      } else {
-        alert('Anket silinemedi');
-      }
-    }
-    
-    async function showStatsModal() {
-      if (!selectedSurvey) return;
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}/stats`);
-      const stats = await res.json();
-      
-      document.getElementById('statsContent').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-value">${stats.total_responses || 0}</div>
-          <div class="stat-label">Toplam Yanıt</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${stats.total_questions || 0}</div>
-          <div class="stat-label">Toplam Soru</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${stats.total_invitations || 0}</div>
-          <div class="stat-label">Toplam Davetiye</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${stats.used_invitations || 0}</div>
-          <div class="stat-label">Kullanılan Davetiye</div>
-        </div>
-      `;
-      document.getElementById('statsModal').classList.add('active');
-    }
-    
-    function exportSurveyData() {
-      if (!selectedSurvey) return;
-      window.location.href = `/api/surveys/${selectedSurvey.id}/export`;
-    }
-    
-    async function showQuestionsView() {
-      if (!selectedSurvey) return;
-      
-      // Load questions
-      const res = await fetch(`/api/surveys/${selectedSurvey.slug}`);
-      const data = await res.json();
-      questions = data.questions.map(q => ({
-        id: q.id,
-        section_id: q.section_id,
-        ord: q.ord,
-        label: q.label,
-        type: q.type,
-        required: !!q.required,
-        options: q.options_json ? JSON.parse(q.options_json) : [],
-        conditional_logic: q.conditional_logic ? JSON.parse(q.conditional_logic) : null
-      }));
-      
-      document.getElementById('surveyManagementView').classList.remove('active');
-      document.getElementById('questionsView').classList.add('active');
-      
-      renderQuestions();
-    }
-    
-    function backToSurveyManagement() {
-      document.getElementById('questionsView').classList.remove('active');
-      document.getElementById('surveyManagementView').classList.add('active');
-    }
-    
-    function toggleSections() {
-      const enabled = document.getElementById('sectionsToggle').checked;
-      document.getElementById('addSectionBtn').style.display = enabled ? 'block' : 'none';
-      document.getElementById('sectionTabs').style.display = enabled ? 'flex' : 'none';
-      
-      if (enabled) {
-        renderSectionTabs();
-      } else {
-        currentSection = null;
-      }
-    }
-    
-    function renderSectionTabs() {
-      const container = document.getElementById('sectionTabs');
-      container.innerHTML = '';
-      
-      // "Tüm Sorular" tab
-      const allTab = document.createElement('button');
-      allTab.className = 'section-tab' + (currentSection === null ? ' active' : '');
-      allTab.textContent = 'Tüm Sorular';
-      allTab.onclick = () => {
-        currentSection = null;
-        renderSectionTabs();
-        renderQuestions();
-      };
-      container.appendChild(allTab);
-      
-      sections.forEach(sec => {
-        const tab = document.createElement('button');
-        tab.className = 'section-tab' + (currentSection && currentSection.id === sec.id ? ' active' : '');
-        tab.innerHTML = `${sec.name} <span class="section-delete" onclick="deleteSection(${sec.id}); event.stopPropagation();">×</span>`;
-        tab.onclick = () => {
-          currentSection = sec;
-          renderSectionTabs();
-          renderQuestions();
-        };
-        container.appendChild(tab);
-      });
-    }
-    
-    function showAddSectionModal() {
-      document.getElementById('newSectionName').value = '';
-      document.getElementById('addSectionModal').classList.add('active');
-    }
-    
-    async function createSection() {
-      if (!selectedSurvey) return;
-      const name = document.getElementById('newSectionName').value.trim();
-      if (!name) {
-        alert('Lütfen bölüm adı girin.');
-        return;
-      }
-      
-      const res = await fetch(`/api/surveys/${selectedSurvey.id}/sections`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, ord: sections.length + 1 })
-      });
-      
-      if (res.ok) {
-        closeModal('addSectionModal');
-        await loadSections();
-        renderSectionTabs();
-      } else {
-        alert('Bölüm eklenemedi');
-      }
-    }
-    
-    async function deleteSection(sectionId) {
-      if (!confirm('Bu bölümü silmek istediğinizden emin misiniz? Bölümdeki sorular genel sorular listesine taşınacak.')) return;
-      
-      const res = await fetch(`/api/sections/${sectionId}`, { method: 'DELETE' });
-      if (res.ok) {
-        await loadSections();
-        if (currentSection && currentSection.id === sectionId) {
-          currentSection = null;
-        }
-        renderSectionTabs();
-        renderQuestions();
-      } else {
-        alert('Bölüm silinemedi');
-      }
-    }
-    
-    function addQuestion() {
-      const newQ = {
-        id: 0,
-        section_id: currentSection ? currentSection.id : null,
-        ord: questions.length + 1,
-        label: 'Yeni soru',
-        type: 'text',
-        required: false,
-        options: [],
-        conditional_logic: null
-      };
-      questions.push(newQ);
-      renderQuestions();
-    }
-    
-    function showTemplatesModal() {
-      document.getElementById('templatesModal').classList.add('active');
-    }
-    
-    function applyTemplate(templateName) {
-      const template = TEMPLATES[templateName];
-      if (!template) return;
-      
-      const base = questions.length;
-      template.forEach((t, i) => {
-        questions.push({
-          id: 0,
-          section_id: currentSection ? currentSection.id : null,
-          ord: base + i + 1,
-          label: t.label,
-          type: t.type,
-          required: t.required,
-          options: t.options || [],
-          conditional_logic: null
-        });
-      });
-      
-      closeModal('templatesModal');
-      renderQuestions();
-    }
-    
-    function renderQuestions() {
-      const container = document.getElementById('questionsContainer');
-      container.innerHTML = '';
-      
-      // Filter questions by current section
-      let filteredQuestions = questions;
-      if (document.getElementById('sectionsToggle').checked && currentSection) {
-        filteredQuestions = questions.filter(q => q.section_id === currentSection.id);
-      } else if (document.getElementById('sectionsToggle').checked && currentSection === null) {
-        // Show all questions
-        filteredQuestions = questions;
-      }
-      
-      if (filteredQuestions.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Henüz soru eklenmedi. "+ Soru Ekle" butonuna tıklayın.</p></div>';
-        return;
-      }
-      
-      filteredQuestions.forEach((q, idx) => {
-        const card = document.createElement('div');
-        card.className = 'question-card';
-        card.draggable = true;
-        card.dataset.index = questions.indexOf(q);
-        
-        card.ondragstart = (e) => {
-          draggedIndex = parseInt(e.target.dataset.index);
-          e.target.classList.add('dragging');
-        };
-        card.ondragend = (e) => {
-          e.target.classList.remove('dragging');
-        };
-        card.ondragover = (e) => e.preventDefault();
-        card.ondrop = (e) => {
-          e.preventDefault();
-          const dropIndex = parseInt(e.currentTarget.dataset.index);
-          if (draggedIndex === dropIndex || draggedIndex === null) return;
-          
-          const [moved] = questions.splice(draggedIndex, 1);
-          questions.splice(dropIndex, 0, moved);
-          questions = questions.map((qq, i) => ({ ...qq, ord: i + 1 }));
-          draggedIndex = null;
-          renderQuestions();
-        };
-        
-        card.innerHTML = `
-          <div class="question-header">
-            <span class="question-order">${q.ord}.</span>
-            <div class="question-actions">
-              <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="editQuestion(${questions.indexOf(q)})">✏️ Düzenle</button>
-              <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;" onclick="deleteQuestion(${questions.indexOf(q)})">🗑️</button>
-            </div>
-          </div>
-          <div style="margin: 12px 0;">
-            <strong>${q.label}</strong>
-            ${q.required ? '<span class="badge badge-danger" style="margin-left: 8px;">Zorunlu</span>' : ''}
-          </div>
-          <div style="font-size: 13px; color: #6b7280;">
-            Tip: <strong>${q.type}</strong>
-            ${q.options && q.options.length > 0 ? ` | Seçenekler: ${q.options.length}` : ''}
-            ${q.conditional_logic ? ' | <span style="color: #667eea;">Koşullu Yönlendirme Var</span>' : ''}
-          </div>
-        `;
-        
-        container.appendChild(card);
-      });
-    }
-    
-    function editQuestion(index) {
-      editingQuestionIndex = index;
-      const q = questions[index];
-      
-      document.getElementById('editQuestionLabel').value = q.label;
-      document.getElementById('editQuestionType').value = q.type;
-      document.getElementById('editQuestionOptions').value = (q.options || []).join(', ');
-      document.getElementById('editQuestionRequired').checked = q.required;
-      
-      updateQuestionTypeFields();
-      renderConditionalLogic(q.conditional_logic);
-      
-      document.getElementById('editQuestionModal').classList.add('active');
-    }
-    
-    function updateQuestionTypeFields() {
-      const type = document.getElementById('editQuestionType').value;
-      const optionsGroup = document.getElementById('optionsGroup');
-      optionsGroup.style.display = ['single', 'multiple', 'likert'].includes(type) ? 'block' : 'none';
-    }
-    
-    function renderConditionalLogic(logic) {
-      const container = document.getElementById('conditionalLogicContainer');
-      container.innerHTML = '';
-      
-      if (!logic || !logic.rules || logic.rules.length === 0) {
-        container.innerHTML = '<p style="font-size: 13px; color: #9ca3af;">Henüz koşul eklenmedi.</p>';
-        return;
-      }
-      
-      logic.rules.forEach((rule, idx) => {
-        const ruleDiv = document.createElement('div');
-        ruleDiv.style.cssText = 'background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 8px;';
-        ruleDiv.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 13px;">
-              Eğer yanıt: <strong>${rule.answer}</strong> ise → <strong>Soru ${rule.nextQuestionOrd}</strong>'a git
-            </div>
-            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="removeConditionalRule(${idx})">Sil</button>
-          </div>
-        `;
-        container.appendChild(ruleDiv);
-      });
-    }
-    
-    function addConditionalRule() {
-      const q = questions[editingQuestionIndex];
-      if (!q.conditional_logic) {
-        q.conditional_logic = { rules: [] };
-      }
-      
-      const answer = prompt('Hangi yanıt için koşul eklensin?');
-      if (!answer) return;
-      
-      const nextOrd = prompt('Bu yanıt verildiğinde hangi soru sırasına gidilsin?');
-      if (!nextOrd) return;
-      
-      q.conditional_logic.rules.push({ answer, nextQuestionOrd: parseInt(nextOrd) });
-      renderConditionalLogic(q.conditional_logic);
-    }
-    
-    function removeConditionalRule(index) {
-      const q = questions[editingQuestionIndex];
-      if (q.conditional_logic && q.conditional_logic.rules) {
-        q.conditional_logic.rules.splice(index, 1);
-        renderConditionalLogic(q.conditional_logic);
-      }
-    }
-    
-    function saveQuestionEdit() {
-      const q = questions[editingQuestionIndex];
-      q.label = document.getElementById('editQuestionLabel').value.trim();
-      q.type = document.getElementById('editQuestionType').value;
-      q.required = document.getElementById('editQuestionRequired').checked;
-      
-      if (['single', 'multiple', 'likert'].includes(q.type)) {
-        const optionsText = document.getElementById('editQuestionOptions').value;
-        q.options = optionsText.split(',').map(s => s.trim()).filter(Boolean);
-      } else {
-        q.options = [];
-      }
-      
-      closeModal('editQuestionModal');
-      renderQuestions();
-    }
-    
-    function deleteQuestion(index) {
-      if (!confirm('Bu soruyu silmek istediğinizden emin misiniz?')) return;
-      questions.splice(index, 1);
-      questions = questions.map((q, i) => ({ ...q, ord: i + 1 }));
-      renderQuestions();
-    }
-    
-    async function saveQuestions() {
-      if (!selectedSurvey) {
-        alert('Önce bir anket seçin.');
-        return;
-      }
-      
-      const payload = questions.map((q, i) => ({
-        id: q.id || 0,
-        section_id: q.section_id || null,
-        ord: i + 1,
-        label: q.label || '',
-        type: q.type,
-        required: !!q.required,
-        options_json: q.options && q.options.length ? JSON.stringify(q.options) : null,
-        conditional_logic: q.conditional_logic && q.conditional_logic.rules && q.conditional_logic.rules.length ? JSON.stringify(q.conditional_logic) : null
-      }));
-      
-      const res = await fetch('/api/questions/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surveyId: selectedSurvey.id, items: payload })
-      });
-      
-      if (res.ok) {
-        document.getElementById('statusMessage').textContent = '✅ Sorular başarıyla kaydedildi!';
-        setTimeout(() => { document.getElementById('statusMessage').textContent = ''; }, 3000);
-        await showQuestionsView(); // Reload questions
-      } else {
-        const err = await res.json();
-        alert('Hata: ' + (err.message || 'Sorular kaydedilemedi'));
-      }
-    }
-    
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
-    }
-    
-    // Close modal on outside click
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
-    });
-  </script>
+  <!-- Davetiye Gönder Modal -->
+  <div id="inviteModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2 class="modal-title">✉️ Davetiye Gönder</h2>
+        <button class="modal-close" onclick="closeModal('inviteModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-posta Adresleri (Her satıra bir tane)</label>
+        <textarea class="form-input" id="inviteEmails" rows="6" placeholder="ornek1@email.com&#10;ornek2@email.com&#10;ornek3@email.com"></textarea>
+        <small style="color: #6b7280;">Her satıra bir e-posta adresi yazın</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Davetiye Mesajı (Opsiyonel)</label>
+        <textarea class="form-input" id="inviteMessage" rows="8"></textarea>
+        <small style="color: #6b7280;">{{TOKEN}} yerine davetiye linki otomatik eklenecektir. Boş bırakırsanız varsayılan mesaj kullanılır.</small>
+      </div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="sendInvitations()">📤 Davetiye Gönder</button>
+    </div>
+  </div>
+  
+  <script src="/js/admin.js"></script>
 </body>
 </html>
